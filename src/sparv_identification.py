@@ -15,6 +15,10 @@ def get_correct_spelling(word, list_number):
     return min(list_number, key=lambda x: distance(word, x))
 
 def is_pm_pos(annotated_data, sentenceindex, wordindex):
+    
+    #Check if a word has the part of speech Proper Noun
+    #by cross-checking the index against the annotated corresponding data
+    
     sentence = annotated_data[sentenceindex]
     word, pos = sentence.split()[wordindex].split('//')
         
@@ -53,9 +57,7 @@ swe_street_data = pd.read_csv(MODULEDIR + '/dataset/swedish_streets.csv')
 
 # Main function to de-identify all the personal information and save as a text file
 def identify(data, annotated_data):
-    
-    #print("Pseudonymizing...")
-    
+        
     #Temp variable to be able to send back certain values
     found_values = []
     
@@ -63,9 +65,6 @@ def identify(data, annotated_data):
     #data = re.sub(r'\n\n', ' $$$$ . ', data)  
     data = nltk.sent_tokenize(data) # Sentence Tokenize to keep track on the 
     #annotated_data is a list - don't need to tokenize
-
-    #print(data)
-    #print(annotated_data)
     
     '''
     ##########
@@ -375,7 +374,7 @@ def identify(data, annotated_data):
     for y,z in dict_universities.items():
         for i in z:
             if i in data:
-                print("Found a university")
+                #print("Found a university")
                 new_name = random.choice(list(dict_universities.keys()))
                 new_univ = dict_universities[new_name][0]
                 if ' ' in new_univ:
@@ -433,7 +432,6 @@ def identify(data, annotated_data):
                     
                     country_index = i.split(' ').index(str(j)) #find the country as index in line
                     is_pm = is_pm_pos(annotated_data, line_index, country_index) #check if the corresponding word on the corresponding line in annotated_data is a personal noun
-                    #print(str(j), is_pm)                    
                     
                     if is_pm:
                         countries_in_data[list_countries.index(str(j))] = (j, countries_nr)
@@ -456,7 +454,6 @@ def identify(data, annotated_data):
                                         
                     city_index = i.split(' ').index(str(k)) #find the city as index in line
                     is_pm = is_pm_pos(annotated_data, line_index, city_index) #check if the corresponding word on the corresponding line in annotated_data is a personal noun
-                    #print(str(k), is_pm)                          
                     
                     if is_pm:
                         cities_in_data[list_cities.index(str(k))] = (k, cities_nr) 
@@ -465,7 +462,6 @@ def identify(data, annotated_data):
         line_index +=1
   
     _data = ' '.join(data)
-    #print(data)
     
     
     if len(countries_in_data) > 0:
@@ -486,14 +482,14 @@ def identify(data, annotated_data):
                     _keys = list(_keys)
                     _find = _keys[_find]
                     _data = _data.replace(list_countries[i]+' ', y1+'/label/country/label/'+str(indexing)+' ')
-                    found_values.append("Found country: " + list_countries[i])
+                    found_values.append("Found country: " + '\t' + '\t' + list_countries[i])
                     if list_countries[i][-1] != 's':
                         if y1[-1] != 's':
                             _y1_ = y1 + 's'
                         else:
                             _y1_ = y1
                         _data = _data.replace(list_countries[i]+'s'+' ', _y1_+'/label/country/label/gen/label/'+str(indexing)+' ')
-                        found_values.append("Found country: " + list_countries[i]+'s')
+                        found_values.append("Found country: " + '\t' + '\t' + list_countries[i]+'s')
 
                     #+str(countries_in_data[_find][1]))
                     indexing += 1
@@ -505,7 +501,7 @@ def identify(data, annotated_data):
                     else:
                         y2 = x2
                     _data = _data.replace(list_cities[i]+' ', y2+'/label/city/label/'+str(indexing)+' ')#+str(j[1]))
-                    found_values.append("Found city: " + list_cities[i])
+                    found_values.append("Found city: " + '\t' + '\t' + list_cities[i])
                     
                     if list_cities[i][-1] != 's':
                         if y2[-1] != 's':
@@ -513,7 +509,7 @@ def identify(data, annotated_data):
                         else:
                             _y2_ = y2
                         _data = _data.replace(list_cities[i]+'s'+' ', _y2_+'/label/city/label/gen/label/'+str(indexing)+' ')
-                        found_values.append("Found city: " + list_cities[i]+'s')
+                        found_values.append("Found city: " + '\t' + list_cities[i]+'s')
 
                     indexing += 1
                     cities_occ.append(list_cities[i])
@@ -529,7 +525,7 @@ def identify(data, annotated_data):
                                     else:
                                         y4 = x4
                                     _data = _data.replace(list_cities[key]+' ', y4+'/label/city/label/'+str(indexing)+' ')
-                                    found_values.append("Found city: " + list_cities[key])
+                                    found_values.append("Found city: " + '\t' + list_cities[key])
                                     
                                     if list_cities[key][-1] != 's':
                                         if y4[-1] != 's':
@@ -537,7 +533,7 @@ def identify(data, annotated_data):
                                         else:
                                             _y4_ = y4
                                         _data = _data.replace(list_cities[key]+'s'+' ', _y4_+'/label/city/label/gen/label/'+str(indexing)+' ')
-                                        found_values.append("Found city: " + list_cities[key]+'s')
+                                        found_values.append("Found city: " + '\t' + list_cities[key]+'s')
                                         
                                     #+str(cities_in_data[key][1]))
                                     indexing += 1
@@ -549,7 +545,7 @@ def identify(data, annotated_data):
                     else:
                         y3 = x3
                     _data = _data.replace(j[0]+' ', y3+'/label/city/label/'+str(indexing)+' ')#+str(j[1]))
-                    found_values.append("Found city: " + j[0])
+                    found_values.append("Found city: " + '\t' + j[0])
                     
                     if j[0][-1] != 's':
                         if y3[-1] != 's':
@@ -557,7 +553,7 @@ def identify(data, annotated_data):
                         else:
                             _y3_ = y3
                         _data = _data.replace(j[0]+'s'+' ', _y3_+'/label/city/label/gen/label/'+str(indexing)+' ')
-                        found_values.append("Found city: " + j[0]+'s')
+                        found_values.append("Found city: " + '\t' + j[0]+'s')
                         
                     indexing += 1
                     cities_occ.append(list_cities[i])
@@ -571,7 +567,7 @@ def identify(data, annotated_data):
                     else:
                         _y1 = _x1
                     _data = _data.replace(list_cities[i]+' ', _y1+'/label/city/label/'+str(indexing)+' ')#+str(j[1]))
-                    found_values.append("Found city: " + list_cities[i])
+                    found_values.append("Found city: " + '\t' + list_cities[i])
                     
                     if list_cities[i][-1] != 's':
                         if _y1[-1] != 's':
@@ -579,7 +575,7 @@ def identify(data, annotated_data):
                         else:
                             _y1_1 = _y1
                         _data = _data.replace(list_cities[i]+'s'+' ', _y1_1+'/label/city/label/gen/label/'+str(indexing)+' ')
-                        found_values.append("Found city: " + list_cities[i]+'s')
+                        found_values.append("Found city: " + '\t' + list_cities[i]+'s')
                         
                     indexing += 1
                     cities_occ.append(list_cities[i])
@@ -590,7 +586,7 @@ def identify(data, annotated_data):
                     else:
                         _y2 = _x2
                     _data = _data.replace(list_countries[i]+' ', _y2+'/label/country/label/'+str(indexing)+' ')#+str(j[1]))
-                    found_values.append("Found country: " + list_countries[i])
+                    found_values.append("Found country: " + '\t' + list_countries[i])
                     
                     if list_countries[i][-1] != 's':
                         if _y2[-1] != 's':
@@ -598,7 +594,7 @@ def identify(data, annotated_data):
                         else:
                             _y2_2 = _y2
                         _data = _data.replace(list_countries[i]+'s'+' ', _y2_2+'/label/country/label/gen/label/'+str(indexing)+' ')
-                        found_values.append("Found country: " + list_countries[i]+'s')
+                        found_values.append("Found country: " + '\t' + list_countries[i]+'s')
                         
                     indexing += 1
                     countries_occ.append(list_countries[i])
@@ -609,7 +605,7 @@ def identify(data, annotated_data):
                     else:
                         _y3 = _x3
                     _data = _data.replace(j[0]+' ', _y3+'/label/country/label/'+str(indexing)+' ')#+str(j[1]))
-                    found_values.append("Found country: " + j[0])
+                    found_values.append("Found country: " + '\t' + j[0])
                     
                     if j[0][-1] != 's':
                         if _y3[-1] != 's':
@@ -617,7 +613,7 @@ def identify(data, annotated_data):
                         else:
                             _y3_3 = _y3
                         _data = _data.replace(j[0]+'s'+' ', _y3_3+'/label/country/label/gen/label/'+str(indexing)+' ')
-                        found_values.append("Found country: " + j[0]+'s')
+                        found_values.append("Found country: " + '\t' + j[0]+'s')
                         
                     indexing += 1
                     countries_occ.append(list_countries[i])
@@ -629,7 +625,7 @@ def identify(data, annotated_data):
                 else:
                     yy = xx
                 _data = _data.replace(j[0]+' ', yy+'/label/country/label/'+str(indexing)+' ')#+str(j[1]))
-                found_values.append("Found country: " + j[0])
+                found_values.append("Found country: " + '\t' + j[0])
                 
                 if j[0][-1] != 's':
                     if yy[-1] != 's':
@@ -637,7 +633,7 @@ def identify(data, annotated_data):
                     else:
                         _yy_ = yy
                     _data = _data.replace(j[0]+'s'+' ', _yy_+'/label/country/label/gen/label/'+str(indexing)+' ')
-                    found_values.append("Found country: " + j[0]+'s')
+                    found_values.append("Found country: " + '\t' + j[0]+'s')
                     
                 indexing += 1
     elif len(cities_in_data) > 0:
@@ -648,7 +644,7 @@ def identify(data, annotated_data):
             else:
                 yy = xx
             _data = _data.replace(j[0]+' ', yy+'/label/city/label/'+str(indexing)+' ')#+str(j[1]))
-            found_values.append("Found city: " + j[0])
+            found_values.append("Found city: " + '\t' + j[0])
             
             if j[0][-1] != 's':
                 if yy[-1] != 's':
@@ -656,7 +652,7 @@ def identify(data, annotated_data):
                 else:
                     _yy_ = yy
                 _data = _data.replace(j[0]+'s'+' ', _yy_+'/label/city/label/gen/label/'+str(indexing)+' ')
-                found_values.append("Found country: " + j[0]+'s')
+                found_values.append("Found city: " + '\t' + j[0]+'s')
                 
             indexing += 1
             
@@ -873,7 +869,6 @@ def identify(data, annotated_data):
             indexing += 1
             
     data = nltk.sent_tokenize(_data)
-    #print(data)
     _data = []
     list_island = list_swedish_island['Island'].tolist()
 
@@ -940,7 +935,6 @@ def identify(data, annotated_data):
                 found_name = dict_names['förnamn_män'][0][i][0]
                 name_index = line.split(' ').index(found_name) #find the name as index in line
                 is_pm = is_pm_pos(annotated_data, line_index, name_index) #check if the corresponding word on the corresponding line in annotated_data is a personal noun
-                #print(found_name, is_pm)
                 
                 if i not in dict_fornamn_man and is_pm:
                     dict_fornamn_man[i] = (len(dict_fornamn_man.keys())+1,
@@ -961,7 +955,6 @@ def identify(data, annotated_data):
                 found_name = dict_names['neutral_namn'][0][i][0]
                 name_index = line.split(' ').index(found_name) #find the name as index in line
                 is_pm = is_pm_pos(annotated_data, line_index, name_index) #check if the corresponding word on the corresponding line in annotated_data is a personal noun
-                #print(found_name, is_pm)
                 
                 if i not in dict_neutral_namn and is_pm:
                     dict_neutral_namn[i] = (len(dict_neutral_namn.keys())+1,
@@ -982,7 +975,6 @@ def identify(data, annotated_data):
                 found_name = dict_names['efternamn'][0][i][0]
                 name_index = line.split(' ').index(found_name) #find the name as index in line
                 is_pm = is_pm_pos(annotated_data, line_index, name_index) #check if the corresponding word on the corresponding line in annotated_data is a personal noun
-                #print(found_name, is_pm)                
                 
                 if i not in dict_efternamn and is_pm:
                     dict_efternamn[i] = (len(dict_efternamn.keys())+1,
@@ -1001,7 +993,6 @@ def identify(data, annotated_data):
                 found_name = dict_names['förnamn_kvinnor'][0][i][0]
                 name_index = line.split(' ').index(found_name) #find the name as index in line
                 is_pm = is_pm_pos(annotated_data, line_index, name_index) #check if the corresponding word on the corresponding line in annotated_data is a personal noun
-                #print(found_name, is_pm)                
                 
                 if i not in dict_fornamn_kvn and is_pm:
                     dict_fornamn_kvn[i] = (len(dict_fornamn_kvn.keys())+1,
@@ -1032,9 +1023,8 @@ def identify(data, annotated_data):
     for i,j in enumerate(data):   
         for key, value in dict_fornamn_man.items():
             if value[1] == j:
-                #print(j)
                 new_data = new_data.replace(data[i]+' ', str(value[2])+'/label/firstname_male/label/'+str(indexing)+' ')
-                found_values.append("Found man's first name: " + data[i])
+                found_values.append("Found man's first name: " + '\t' + data[i])
                 
                 gen_male_index[value[1]] = str(indexing)
                 indexing += 1
@@ -1044,7 +1034,7 @@ def identify(data, annotated_data):
         for key, value in dict_fornamn_kvn.items():
             if value[1] == j:
                 new_data = new_data.replace(data[i]+' ', str(value[2])+'/label/firstname_female/label/'+str(indexing)+' ')#+str(value[0])
-                found_values.append("Found woman's first name: " + data[i])
+                found_values.append("Found woman's first name: " + '\t' + data[i])
                 
                 gen_female_index[value[1]] = str(indexing)
                 indexing += 1
@@ -1054,7 +1044,7 @@ def identify(data, annotated_data):
         for key, value in dict_neutral_namn.items():
             if value[1] == j:
                 new_data = new_data.replace(data[i]+' ', str(value[2])+'/label/firstname_unknown/label/'+str(indexing)+' ')#+str(value[0])
-                found_values.append("Found neutral's first name: " + data[i])
+                found_values.append("Found neutral's first name: " + '\t' + data[i])
                 
                 gen_neutral_index[value[1]] = str(indexing)
                 indexing += 1
@@ -1064,7 +1054,7 @@ def identify(data, annotated_data):
         for key, value in dict_efternamn.items():
             if value[1] == j:
                 new_data = new_data.replace(data[i]+' ', str(value[2])+'/label/surname/label/'+str(indexing)+' ')
-                found_values.append("Found surname: " + data[i])
+                found_values.append("Found surname: " + '\t' + data[i])
                 
                 indexing += 1
     
@@ -1073,7 +1063,7 @@ def identify(data, annotated_data):
         for key, value in dict_fornamn_man.items():
             value_s = value[1] + 's'
             if value_s == j:
-                found_values.append("Found man's first name (genitive): " + data[i])
+                found_values.append("Found man's first name (genitive): " + '\t' + data[i])
                 
                 if value[2][-1] == 's': 
                     new_data = new_data.replace(data[i], str(value[2])+'/label/firstname_male/label/gen/label/'+gen_male_index[value[1]])                    
@@ -1085,7 +1075,7 @@ def identify(data, annotated_data):
         for key, value in dict_fornamn_kvn.items():
             value_s = value[1] + 's'
             if value_s == j:
-                found_values.append("Found woman's first name (genitive): " + data[i])
+                found_values.append("Found woman's first name (genitive): " + '\t' + data[i])
                 
                 if value[2][-1] == 's':
                     new_data = new_data.replace(value_s, str(value[2])+'/label/firstname_female/label/gen/label/'+gen_female_index[value[1]])
@@ -1097,7 +1087,7 @@ def identify(data, annotated_data):
         for key, value in dict_neutral_namn.items():
             value_s = value[1] + 's'
             if value_s == j:
-                found_values.append("Found neutral's first name (genitive): " + data[i])
+                found_values.append("Found neutral's first name (genitive): " + '\t' + data[i])
                 
                 if value[2][-1] == 's':
                     new_data = new_data.replace(value_s, str(value[2])+'/label/firstname_unknown/label/gen/label/'+gen_neutral_index[value[1]])
@@ -1108,7 +1098,6 @@ def identify(data, annotated_data):
     
     
     data = nltk.sent_tokenize(new_data)
-    #print(data)
     
     data_ = []
     

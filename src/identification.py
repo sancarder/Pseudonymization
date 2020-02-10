@@ -44,9 +44,13 @@ swe_street_data = pd.read_csv(MODULEDIR + '/dataset/swedish_streets.csv')
 
 # Main function to de-identify all the personal information and save as a text file
 def identify(data):
+    
+    #print("Running identification.identify")
+    
     # To have the output format same as the input especially for newline and paragraphs in the text
     #data = re.sub(r'\n\n', ' $$$$ . ', data)  
     data = nltk.sent_tokenize(data) # Sentence Tokenize to keep track on the 
+    #print(data)
     
     '''
     ##########
@@ -133,6 +137,7 @@ def identify(data):
         if re.search(r'\b\d{1,2}([a-z]{2})? (\w.*) \d{2,4}\b', line):
             line = re.sub(r'\b\d{1,2}([a-z]{2})?(?= (\w.*) \d{2,4})\b', r'11/label/date_digits/label/'+str(indexing), line)
             indexing += 1
+
         if 'mobil' in line:  # Mobile number format
             line_split = line.split(' ')
             for i, j in enumerate(line_split):
@@ -140,6 +145,7 @@ def identify(data):
                     line_split[i] = '0000-000000/label/phone_nr/label/'+str(indexing)
                     indexing += 1
             _data.append(' '.join(line_split))
+
         else:
             line_split = line.split(' ')
             for i, j in enumerate(line_split):
@@ -161,6 +167,7 @@ def identify(data):
                 if re.search(r'^\d{4}$', j):  # Year - randomise "2018" with (-2,2) # If statement
                     line_split[i] = str(int(j) + random.randint(-2,2))+'/label/year/label/'+str(indexing)
                     indexing += 1
+                    
                 # Personal number formats
                 if re.search(r'\b\d{6}-\d{4}\b', j) or re.search(r'\b\d{8}-\d{4}\b', j) or re.search(r'\b\d{10}\b',j) or re.search(r'\b\d{12}\b',j):
                     line_split[i] = '123456-0000/label/personid_nr/label/'+str(indexing)
@@ -184,7 +191,8 @@ def identify(data):
             
     data = _data
     _data = []
-           
+    
+        
     # Randomised days in the data using a list of all the days in a week
     for line in data:
         line_split = line.split(' ')
@@ -281,7 +289,7 @@ def identify(data):
     _data = []
     
     for line in data:
-        if all(x not in line for x in ['heter','namn']):
+        if all(x not in line for x in ['heter','namn']): #for each x in line, if x is not heter or namn
             line_split = line.split(' ')
             for i, j in enumerate(line_split):
                 for k in list_family:
@@ -340,7 +348,7 @@ def identify(data):
             
     data = ' '.join(_data)
     _data = []
-    
+
     for y,z in dict_universities.items():
         for i in z:
             if i in data:
@@ -373,6 +381,7 @@ def identify(data):
         _data.append(line)
     
     data = _data
+
     countries_in_data = {}
     cities_in_data = {}
     
@@ -384,6 +393,7 @@ def identify(data):
     
     countries_nr = 1
     cities_nr = 1
+    
     for i in data:
         for j in set(list_countries):
             if ' ' in str(j):
@@ -576,6 +586,7 @@ def identify(data):
     
     city_nr = 1
     street_nr = 1
+    
     for i in data:
         for j in set(swe_city):
             if ' ' in str(j):
@@ -773,6 +784,7 @@ def identify(data):
 
     island_in_data = {}
     island_nr = 1
+    
     for i in data:
         for j in set(list_island):
             if ' ' in str(j):
@@ -861,6 +873,7 @@ def identify(data):
                                         )
                 else:
                     pass
+        
         for i in range(len(dict_names['förnamn_kvinnor'][0])):
             if dict_names['förnamn_kvinnor'][0][i][0] in line.split(' '):
                 if i not in dict_fornamn_kvn:
@@ -905,7 +918,7 @@ def identify(data):
                 new_data = new_data.replace(data[i]+' ', str(value[2])+'/label/firstname_unknown/label/'+str(indexing)+' ')#+str(value[0])
                 gen_neutral_index[value[1]] = str(indexing)
                 indexing += 1
-       
+
     for i,j in enumerate(data):
         for key, value in dict_efternamn.items():
             if value[1] == j:
@@ -929,7 +942,7 @@ def identify(data):
                     new_data = new_data.replace(value_s, str(value[2])+'/label/firstname_female/label/gen/label/'+gen_female_index[value[1]])
                 else:
                     new_data = new_data.replace(value_s, str(value[2]+'s')+'/label/firstname_female/label/gen/label/'+gen_female_index[value[1]])
-    
+
     for i,j in enumerate(data):
         for key, value in dict_neutral_namn.items():
             value_s = value[1] + 's'
@@ -963,6 +976,6 @@ def identify(data):
     return data_
 
 if __name__ == '__main__':
-
+    
     output_data = identify(data)
     

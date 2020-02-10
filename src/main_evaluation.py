@@ -8,7 +8,6 @@ import json_to_text
 import sparv_annotation
 import sparv_identification
 import identification
-import evaluation
 
 #This is the starting file for evaluation
 
@@ -33,102 +32,110 @@ labels_per_genre = {}
 words_per_genre = {}
 wordlists_per_genre = {}
 
+
+def count_occurrences_per_label(target_text, genre): 
+    
+    # Looks at the anonymized text, count the occurrences, records the labels and outputs the result (number of occurrences for each label for that document)
+        
+    labels = {}
+    
+    # data is a list. It consists of lists (sentences). Those lists consists of dicts (string:label). 
+    for sentence in target_text:
+        for word in sentence:
+            labellist = word['label']
+            if labellist != []:
+                label = labellist[0]
+                if label in labels:
+                    labels[label] += 1
+                else:
+                    labels[label] = 1
+
+    return labels
+
+
 def add_wordlists_to_genre(genre, wordlist):
     
+    # Adds the labeled words found in the file's genre
+    # Used for quick analysis of which words are detected
+            
     if genre not in wordlists_per_genre:
-        
-        words = []
-        
-        for w in wordlist:
-            if w not in words:
-                wordlist.append(w)
-        
-        wordlists_per_genre[genre] = words
-
+        wordlists_per_genre[genre] = wordlist
+            
     else:
-        
-        for w in wordlist:
-            if w not in wordlists_per_genre[genre]:
-                wordlists_per_genre[genre].append(w)
-    
+        wordlists_per_genre[genre] += wordlist
+                
 
-def add_words_to_genre(genre, words):
-    
-    #words_per_genre = {'Narrative':{'surname':'[Andersson], 'country:'[Africa, 'Sweden']'}, 'Argumentative':{'city':'[Panama'], 'firstname':['Anna', 'Mohammed']}}
-    
-    words_per_label = {}
-    
-    for line in words:
-        print(line)
-        l, word = line.split(': ')
-        label = l.split()[1]
-        
-        print(label, word)
-        
-        if label not in words_per_label:
-            print([word])
-            print(type([word]))
-            words_per_label[label] = [word]
-            print(words_per_label[label])
-        else:
-            print(words_per_label[label])
-            words_per_label[label].append(word)
-            print(words_per_label[label])
-            
-        if genre not in words_per_genre:
-            words_per_genre[genre] = words_per_label
-        else:
-            words_per_genre[genre][label] = word
-            
-    
-    #Split on colon to get a dict of label:word
-
-
-def add_labels_to_genre(genre):
-            
-    #What is labels here?! Is it the labels in the main method? Why don't I have to send it as an argument?
-    #Do a test, print and see if the labels in here are the same as the one from the idenficaction run! 
-            
+def add_labels_to_genre(genre, labels):
+         
+    # Adds the labels found for the file's genre
+    # Used for statistics
+                 
     if genre not in labels_per_genre:
-        #print("Adding new genre:")
         labels_per_genre[genre] = labels
-        #print(labels_per_genre)
+
     else:
-        #print("Genre exists - adding new labels")
         genre_labels = labels_per_genre[genre]
+        
         for label in labels:
+
             if label in genre_labels:
                 labels_per_genre[genre][label] += labels[label]
+
             else:
                 labels_per_genre[genre][label] = labels[label]    
                 
                 
 def print_statistics():
+    
+    # Prints statistics to the terminal
+    
     print('\n')        
     print("Statistics:")
     print('\n')        
+    
+    
     for genre in labels_per_genre:
+        # Print each genre and its labels with number of occurrences
         print(genre)
         for l in labels_per_genre[genre]:
             print(l, '\t', labels_per_genre[genre][l])    
         print('\n')
 
     for g in wordlists_per_genre:
+        # Prints the words detected for each genre and their labels
         print(g, wordlists_per_genre[g])
-        
-    '''    
-    for genre in words_per_genre:
-        print(genre)
-        for lex in words_per_label[genre]:
-            for label in lex:
-                print(label)
-                print(lex[label])
-                print('\n')
         print('\n')
-    '''
+        
+        
+def write_statistics(output):
+    
+    # Writes statistics to the given output file
+    
+    with open(output, 'w') as resultfile:
+    
+        resultfile.write("Statistics:" + '\n')
+        resultfile.write('\n')        
+
+        for genre in labels_per_genre:            
+            # Writes each genre and its labels with number of occurrences
+            resultfile.write(genre+'\n')
+            for l in labels_per_genre[genre]:
+                resultfile.write(l + '\t' + str(labels_per_genre[genre][l]) +'\n')    
+            resultfile.write('\n')
+
+        for g in wordlists_per_genre:
+            # Writes the words detected for each genre and their labels
+            resultfile.write(g+'\n')
+            outer_list = wordlists_per_genre[g]
+                          
+            for w in outer_list:
+                resultfile.write(w+'\n')
+            resultfile.write('\n')
+        
 
 parser = argparse.ArgumentParser(description='Program takes a module as input')
 parser.add_argument('--input', '-i', type=str, required=True)
+parser.add_argument('--output', '-o', type=str, required=True)
 parser.add_argument('--postagging', '-pos', type=str, required=True) #Use of pos tagging, can be on or off
 parser.add_argument('--limit', '-limit', type=int, default=None)
 parser.add_argument('--exception', '-exc', type=str, required=True, default=None) #Use of excepting certain genres, can be on or off
@@ -138,19 +145,17 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
  
-    current_directory = os.getcwd()
-    #print(current_directory)
+    current_directory = os.getcwd()    
+    counter = 1
     
     for f in glob.glob(current_directory+'/'+args.input+'/*.json'):
-        print(f)
+        print(counter, f)
     
         #Getting genre
         fname, suffix = f.split('.')
         genrecode = fname[-3:]
         genre = genres[genrecode]
-        
-        #print(genre)
-        
+                
         #Check if the genre should be excepted from pseudonymization
         if args.exception.lower() == 'off' or (args.exception.lower() == 'on' and genre not in exceptions):
     
@@ -160,18 +165,16 @@ if __name__ == '__main__':
 
             #Extract plain text from json source
             plain_source_text = json_to_text.extract_data(data, args.limit) #returns a string
-
+            
             if args.postagging.lower() == 'on':
                 #Annotate plain source text with POS tags
                 annotated_data = sparv_annotation.annotate(plain_source_text) #returns a list of sentences
-                        
+                                                        
                 #Anonymize the POS annotated data
                 output_data, labeled_words = sparv_identification.identify(plain_source_text, annotated_data)
-
-                print(genre)
-                print(labeled_words)
-                print('\n')
+                
                 add_wordlists_to_genre(genre, labeled_words)
+                
 
             elif args.postagging.lower() == 'off':
                 #Anonymize data without POS annotation
@@ -179,33 +182,22 @@ if __name__ == '__main__':
             else:
                 print("Pos arguments must be 'on' or 'off'")
             
-            #Evaluate 
-            #genrecode, labels = evaluation.evaluate(output_data, f) #then you could send genre as argument here instead of repeating it in that code
-            labels = evaluation.evaluate(output_data, genre)
-                    
-            #Getting genre
-            #genre = genres[genrecode] #and this can be removed
-            
-            '''
-            print(genre)
-            print(labels)
-            '''
-            
+            #Count occurrences per label 
+            labels = count_occurrences_per_label(output_data, genre)
+                                                                                
             #If there are more than one genre assigned to an essay, add the labels for all genres
-            #This might be optional? 
             if ',' in genre:
-                #print("Several genres")
                 sev_genres = genre.split(', ')
                 for g in sev_genres:
-                    add_labels_to_genre(g)
-                    #add_words_to_genre(g, labeled_words)                    
+                    add_labels_to_genre(g, labels)
             else:
-                #print("A single genre")
-                add_labels_to_genre(genre)
-                #add_words_to_genre(genre, labeled_words)
-
+                add_labels_to_genre(genre, labels)
+                
         else:
             print("Genre excepted for pseudonymization")
 
-    print_statistics()
+        counter+=1
+
+    #print_statistics()
+    write_statistics(args.output)
 

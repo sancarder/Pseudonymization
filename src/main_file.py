@@ -1,6 +1,6 @@
 # Modules
 import argparse, json
-import label_personal_info
+#import label_personal_info
 import anonymize_personal_info
 import identification
 
@@ -10,6 +10,8 @@ parser.add_argument('--output', '-o', type=str, required=True)
 args = parser.parse_args()
 
 if __name__ == '__main__':
+    
+    print("Running main file")    
     
     # Read input file, only text file
     with open(args.input) as file:
