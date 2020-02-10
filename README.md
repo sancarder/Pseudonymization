@@ -2,6 +2,8 @@
 
 This repository is based on the fork from https://github.com/SamirYousuf/Pseudonymization
 
+The code aims to improve previous implementation from the SweLL project by adding part of speech annotation and a topic switcher to decrease overgeneration of proper nouns. 
+
 Pseudonymization guidelines from SweLL project are here: https://spraakbanken.github.io/swell-project/Anonymization_guidelines 
 
 Updated implementation is done in the following files: 
@@ -13,5 +15,5 @@ Updated implementation is done in the following files:
 * json_to_text - a script that extracts the text from the json files (used only for evaluation at the moment)
 
 ## Example runs
-python main_evaluation.py -i essay_folder -o output.txt -exc on -pos on -limit None
-python sparv_main_file.py -i essay.txt -exc off -o output.txt
+ - python main_evaluation.py -i essay_folder -o output.txt -exc on -pos on -limit None
+ - python sparv_main_file.py -i essay.txt -exc off -o output.txt
